@@ -8,33 +8,27 @@
 
 /* Begin PBXBuildFile section */
 		3382BFBC2DFB0BC500C12CC4 /* .gitignore in Resources */ = {isa = PBXBuildFile; fileRef = 3382BFBB2DFB0BB600C12CC4 /* .gitignore */; };
+		33F352062E03042300DB66E5 /* ImagesListCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F351FB2E03042300DB66E5 /* ImagesListCell.swift */; };
+		33F352072E03042300DB66E5 /* ImagesListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F351FC2E03042300DB66E5 /* ImagesListViewController.swift */; };
+		33F352082E03042300DB66E5 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F351FE2E03042300DB66E5 /* AppDelegate.swift */; };
+		33F352092E03042300DB66E5 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F352032E03042300DB66E5 /* SceneDelegate.swift */; };
+		33F3520A2E03042300DB66E5 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33F352022E03042300DB66E5 /* Main.storyboard */; };
+		33F3520B2E03042300DB66E5 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 33F352012E03042300DB66E5 /* LaunchScreen.storyboard */; };
+		33F3520C2E03042300DB66E5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 33F351FF2E03042300DB66E5 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		3382BF9F2DFB068A00C12CC4 /* ImageFeed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ImageFeed.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		3382BFBB2DFB0BB600C12CC4 /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		33F351FB2E03042300DB66E5 /* ImagesListCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesListCell.swift; sourceTree = "<group>"; };
+		33F351FC2E03042300DB66E5 /* ImagesListViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagesListViewController.swift; sourceTree = "<group>"; };
+		33F351FE2E03042300DB66E5 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		33F351FF2E03042300DB66E5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		33F352002E03042300DB66E5 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		33F352032E03042300DB66E5 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
+		33F352042E03042300DB66E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		33F352052E03042300DB66E5 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		3382BFB12DFB068B00C12CC4 /* Exceptions for "ImageFeed" folder in "ImageFeed" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 3382BF9E2DFB068A00C12CC4 /* ImageFeed */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
-/* Begin PBXFileSystemSynchronizedRootGroup section */
-		3382BFA12DFB068A00C12CC4 /* ImageFeed */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				3382BFB12DFB068B00C12CC4 /* Exceptions for "ImageFeed" folder in "ImageFeed" target */,
-			);
-			path = ImageFeed;
-			sourceTree = "<group>";
-		};
-/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		3382BF9C2DFB068A00C12CC4 /* Frameworks */ = {
@@ -50,8 +44,8 @@
 		3382BF962DFB068A00C12CC4 = {
 			isa = PBXGroup;
 			children = (
+				33F3520E2E03053000DB66E5 /* ImageFeed */,
 				3382BFBB2DFB0BB600C12CC4 /* .gitignore */,
-				3382BFA12DFB068A00C12CC4 /* ImageFeed */,
 				3382BFA02DFB068A00C12CC4 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -62,6 +56,29 @@
 				3382BF9F2DFB068A00C12CC4 /* ImageFeed.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		33F3520E2E03053000DB66E5 /* ImageFeed */ = {
+			isa = PBXGroup;
+			children = (
+				33F3520F2E03056200DB66E5 /* ImageList */,
+				33F351FE2E03042300DB66E5 /* AppDelegate.swift */,
+				33F351FF2E03042300DB66E5 /* Assets.xcassets */,
+				33F352002E03042300DB66E5 /* Info.plist */,
+				33F352012E03042300DB66E5 /* LaunchScreen.storyboard */,
+				33F352022E03042300DB66E5 /* Main.storyboard */,
+				33F352032E03042300DB66E5 /* SceneDelegate.swift */,
+			);
+			path = ImageFeed;
+			sourceTree = "<group>";
+		};
+		33F3520F2E03056200DB66E5 /* ImageList */ = {
+			isa = PBXGroup;
+			children = (
+				33F351FB2E03042300DB66E5 /* ImagesListCell.swift */,
+				33F351FC2E03042300DB66E5 /* ImagesListViewController.swift */,
+			);
+			path = ImageList;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -78,9 +95,6 @@
 			buildRules = (
 			);
 			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				3382BFA12DFB068A00C12CC4 /* ImageFeed */,
 			);
 			name = ImageFeed;
 			packageProductDependencies = (
@@ -128,6 +142,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33F3520A2E03042300DB66E5 /* Main.storyboard in Resources */,
+				33F3520B2E03042300DB66E5 /* LaunchScreen.storyboard in Resources */,
+				33F3520C2E03042300DB66E5 /* Assets.xcassets in Resources */,
 				3382BFBC2DFB0BC500C12CC4 /* .gitignore in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -139,10 +156,33 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				33F352062E03042300DB66E5 /* ImagesListCell.swift in Sources */,
+				33F352072E03042300DB66E5 /* ImagesListViewController.swift in Sources */,
+				33F352082E03042300DB66E5 /* AppDelegate.swift in Sources */,
+				33F352092E03042300DB66E5 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		33F352012E03042300DB66E5 /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				33F352042E03042300DB66E5 /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		33F352022E03042300DB66E5 /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				33F352052E03042300DB66E5 /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		3382BFB32DFB068B00C12CC4 /* Debug */ = {
@@ -160,7 +200,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -192,7 +232,7 @@
 				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
-				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
