@@ -13,6 +13,7 @@ final class ImagesListViewController: UIViewController {
         static let contentInset = UIEdgeInsets(top: 12, left: 0, bottom: 12, right: 0)
         static let imageInsets = UIEdgeInsets(top: 4, left: 16, bottom: 4, right: 16)
         static let defaultRowHeight: CGFloat = 200
+        static let showSingleImageSegueIdentifier = "ShowSingleImage"
     }
     
     // MARK: - IBOutlets
@@ -34,6 +35,21 @@ final class ImagesListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTableView()
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "ShowSingleImage" {
+            guard
+                let singleImageVC = segue.destination as? SingleImageViewController,
+                let indexPath = sender as? IndexPath
+            else {
+                assertionFailure("Invalid configuration")
+                return
+            }
+            
+            let image = UIImage(named: photosName[indexPath.row])
+            singleImageVC.image = image
+        }
     }
 
     // MARK: - Private Methods
@@ -73,7 +89,10 @@ extension ImagesListViewController: UITableViewDelegate, UITableViewDataSource {
         return imageListCell
     }
     
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) { }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        performSegue(withIdentifier: "ShowSingleImage", sender: indexPath)
+    }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         
