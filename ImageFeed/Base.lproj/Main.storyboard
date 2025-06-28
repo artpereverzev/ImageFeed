@@ -4,6 +4,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="23721"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -18,8 +19,8 @@
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="vsv-yl-UDs">
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
-                                <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <color key="sectionIndexBackgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" name="customColor"/>
+                                <color key="sectionIndexBackgroundColor" name="customColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="ImagesListCell" rowHeight="258" id="8B2-Vb-dkb" customClass="ImagesListCell" customModule="ImageFeed" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="50" width="414" height="258"/>
@@ -53,7 +54,7 @@
                                                     <state key="normal" image="LikeButtonActive"/>
                                                 </button>
                                             </subviews>
-                                            <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            <color key="backgroundColor" name="customColor"/>
                                             <constraints>
                                                 <constraint firstItem="roA-2R-jXI" firstAttribute="trailing" secondItem="ito-3p-F18" secondAttribute="trailing" id="8U7-xN-ncx"/>
                                                 <constraint firstItem="roA-2R-jXI" firstAttribute="bottom" secondItem="s1f-QA-Lgu" secondAttribute="bottom" constant="8" id="IZT-tc-Ufa"/>
@@ -66,7 +67,7 @@
                                                 <constraint firstItem="roA-2R-jXI" firstAttribute="top" secondItem="hhK-JS-cvN" secondAttribute="top" constant="4" id="sfP-8i-jmu"/>
                                             </constraints>
                                         </tableViewCellContentView>
-                                        <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                        <color key="backgroundColor" name="customColor"/>
                                         <accessibility key="accessibilityConfiguration" identifier="ImagesListCell"/>
                                         <connections>
                                             <outlet property="cellDateLabel" destination="s1f-QA-Lgu" id="gpl-za-9Ua"/>
@@ -82,7 +83,7 @@
                             </tableView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
-                        <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" name="customColor"/>
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="vsv-yl-UDs" secondAttribute="bottom" id="Qds-7H-gC0"/>
                             <constraint firstItem="vsv-yl-UDs" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="fDV-od-7rz"/>
@@ -108,11 +109,11 @@
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="U7j-G3-WeV">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <color key="backgroundColor" red="0.1019607931" green="0.1058823466" blue="0.1294117719" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
-                        <color key="barTintColor" red="0.1019607843" green="0.1058823529" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" name="customColor"/>
+                        <color key="barTintColor" name="customColor"/>
                         <color key="selectedImageTintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <tabBarAppearance key="standardAppearance">
-                            <color key="backgroundColor" red="0.1019607843" green="0.1058823529" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
+                            <color key="backgroundColor" name="customColor"/>
                         </tabBarAppearance>
                     </tabBar>
                     <connections>
@@ -132,6 +133,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <viewLayoutGuide key="safeArea" id="g81-Or-4Y6"/>
+                        <color key="backgroundColor" name="customColor"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="" image="tab_profile_active" id="1Pe-8o-MaF"/>
                 </viewController>
@@ -184,7 +186,7 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="t7y-1o-iw8"/>
-                        <color key="backgroundColor" red="0.10196078431372549" green="0.10588235294117647" blue="0.13333333333333333" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" name="customColor"/>
                         <constraints>
                             <constraint firstAttribute="bottom" secondItem="KOY-uA-64P" secondAttribute="bottom" id="CkZ-tE-pbp"/>
                             <constraint firstItem="KOY-uA-64P" firstAttribute="top" secondItem="fEM-gj-eoS" secondAttribute="top" id="K78-Ny-heC"/>
@@ -215,5 +217,8 @@
         <image name="sharing_button" width="50" height="50"/>
         <image name="tab_editorial_active" width="75.5" height="49"/>
         <image name="tab_profile_active" width="30" height="30"/>
+        <namedColor name="customColor">
+            <color red="0.1019607843" green="0.1058823529" blue="0.1333333333" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </namedColor>
     </resources>
 </document>
