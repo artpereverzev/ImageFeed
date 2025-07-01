@@ -7,8 +7,14 @@
 import UIKit
 
 final class ProfileViewController: UIViewController {
+    // MARK: - Custom colors for UI & etc.
+    private enum Colors {
+        static let textColorLoginName = UIColor(red: 0.682, green: 0.686, blue: 0.706, alpha: 1)
+        static let backgroundColor = UIColor(red: 0.102, green: 0.106, blue: 0.133, alpha: 1)
+    }
+    
     // MARK: - UI Elements
-    private let profileAvatarImage: UIImageView = {
+    private lazy var profileAvatarImage: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "profile_icon_default")
         imageView.contentMode = .scaleAspectFit
@@ -17,7 +23,7 @@ final class ProfileViewController: UIViewController {
         return imageView
     }()
     
-    private let nameLabel: UILabel = {
+    private lazy var nameLabel: UILabel = {
         let label = UILabel()
         label.text = "Артем Переверзев"
         label.font = UIFont.boldSystemFont(ofSize: 23)
@@ -26,16 +32,16 @@ final class ProfileViewController: UIViewController {
         return label
     }()
     
-    private let loginNameLabel: UILabel = {
+    private lazy var loginNameLabel: UILabel = {
         let label = UILabel()
         label.text = "@artpereverzev"
         label.font = UIFont.systemFont(ofSize: 13)
-        label.textColor = UIColor(red: 0.682, green: 0.686, blue: 0.706, alpha: 1)
+        label.textColor = Colors.textColorLoginName
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
     
-    private let descriptionLabel: UILabel = {
+    private lazy var descriptionLabel: UILabel = {
         let label = UILabel()
         label.text = "Hello, world!"
         label.font = UIFont.systemFont(ofSize: 13)
@@ -44,7 +50,7 @@ final class ProfileViewController: UIViewController {
         return label
     }()
     
-    private let logoutButton: UIButton = {
+    private lazy var logoutButton: UIButton = {
         let button = UIButton()
         button.setImage(UIImage(named: "Exit"), for: .normal)
         button.tintColor = .white
@@ -62,7 +68,7 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Private Methods
     private func setupView() {
-        view.backgroundColor = UIColor(red: 0.102, green: 0.106, blue: 0.133, alpha: 1)
+        view.backgroundColor = Colors.backgroundColor
         
         view.addSubview(profileAvatarImage)
         view.addSubview(nameLabel)
