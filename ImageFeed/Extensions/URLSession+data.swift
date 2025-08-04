@@ -15,6 +15,11 @@ enum NetworkError: Error {
     case decodingError(Error)
 }
 
+// MARK: - Auth Service Error
+enum AuthServiceError: Error {
+    case invalidRequest
+}
+
 // MARK: - Extension for URLSession (Foundation Part)
 extension URLSession {
     func performDataTask(
@@ -32,15 +37,41 @@ extension URLSession {
                 if 200 ..< 300 ~= statusCode {
                     fulfillCompletionOnTheMainThread(.success(data))
                 } else {
+                    print("[dataTask]: NetworkError - status code \(statusCode)")
                     fulfillCompletionOnTheMainThread(.failure(NetworkError.httpStatusCode(statusCode)))
                 }
             } else if let error = error {
+                print("[dataTask]: NetworkError - \(error.localizedDescription)")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlRequestError(error)))
             } else {
+                print("[dataTask]: NetworkError - URLSession error")
                 fulfillCompletionOnTheMainThread(.failure(NetworkError.urlSessionError))
             }
         }
 
         return task
+    }
+    
+    // MARK: - Generic Object Task
+    func objectTask<T: Decodable>(
+        for request: URLRequest,
+        completion: @escaping (Result<T, Error>) -> Void
+    ) -> URLSessionTask {
+        let decoder = JSONDecoder()
+        
+        return performDataTask(for: request) { result in
+            switch result {
+            case .success(let data):
+                do {
+                    let decoded = try decoder.decode(T.self, from: data)
+                    completion(.success(decoded))
+                } catch {
+                    print("Decoding error: \(error.localizedDescription), Data: \(String(data: data, encoding: .utf8) ?? "")")
+                    completion(.failure(NetworkError.decodingError(error)))
+                }
+            case .failure(let error):
+                completion(.failure(error))
+            }
+        }
     }
 }

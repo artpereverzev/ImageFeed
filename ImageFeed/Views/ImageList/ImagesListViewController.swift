@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  ImagesListViewController.swift
 //  ImageFeed
 //
 //  Created by Artem Pereverzev on 12.06.2025.
@@ -16,8 +16,20 @@ final class ImagesListViewController: UIViewController {
         static let showSingleImageSegueIdentifier = "ShowSingleImage"
     }
     
-    // MARK: - IBOutlets
-    @IBOutlet private var tableView: UITableView!
+    // MARK: - UI Elements
+    private lazy var tableView: UITableView = {
+        let tableView = UITableView(frame: .zero, style: .plain)
+        tableView.backgroundColor = .ypBlack
+        tableView.separatorStyle = .none
+        tableView.contentInset = Constants.contentInset
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.estimatedRowHeight = Constants.defaultRowHeight
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.register(ImagesListCell.self, forCellReuseIdentifier: ImagesListCell.reuseIdentifier)
+        tableView.translatesAutoresizingMaskIntoConstraints = false
+        return tableView
+    }()
     
     // MARK: - Properties
     // Array of image names (using numbers 0-19 as strings)
@@ -34,37 +46,36 @@ final class ImagesListViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupTableView()
-    }
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "ShowSingleImage" {
-            guard
-                let singleImageVC = segue.destination as? SingleImageViewController,
-                let indexPath = sender as? IndexPath
-            else {
-                assertionFailure("Invalid configuration")
-                return
-            }
-            
-            let image = UIImage(named: photosName[indexPath.row])
-            singleImageVC.image = image
-        }
+        setupViews()
+        setupConstraints()
     }
 
     // MARK: - Private Methods
-    // Configures table view properties and delegates
-    private func setupTableView() {
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = Constants.defaultRowHeight
-        tableView.contentInset = Constants.contentInset
-        tableView.delegate = self
-        tableView.dataSource = self
+    private func setupViews() {
+        view.backgroundColor = .ypBlack
+        view.addSubview(tableView)
+    }
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
     }
     
     // Returns formatted current date string
     private func formattedDate() -> String {
         return dateFormatter.string(from: Date())
+    }
+    
+    // Shows single image screen
+    private func showSingleImage(at indexPath: IndexPath) {
+        let singleImageVC = SingleImageViewController()
+        singleImageVC.image = UIImage(named: photosName[indexPath.row])
+        singleImageVC.modalPresentationStyle = .fullScreen
+        present(singleImageVC, animated: true)
     }
 }
 
@@ -91,7 +102,7 @@ extension ImagesListViewController: UITableViewDelegate, UITableViewDataSource {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        performSegue(withIdentifier: "ShowSingleImage", sender: indexPath)
+        showSingleImage(at: indexPath)
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
@@ -117,4 +128,3 @@ extension ImagesListViewController: UITableViewDelegate, UITableViewDataSource {
         cell.cellLikeButton.setImage(UIImage(named: likeImageName), for: .normal)
     }
 }
-

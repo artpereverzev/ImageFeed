@@ -5,6 +5,7 @@
 //  Created by Artem Pereverzev on 13.07.2025.
 //
 import UIKit
+import ProgressHUD
 
 // MARK: - AuthViewControllerDelegate protocol for delegation
 protocol AuthViewControllerDelegate: AnyObject {
@@ -12,8 +13,29 @@ protocol AuthViewControllerDelegate: AnyObject {
 }
 
 final class AuthViewController: UIViewController {
+    // MARK: - UI Elements
+    private lazy var logoImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "auth_screen_logo")
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
+    
+    private lazy var loginButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Войти", for: .normal)
+        button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 17)
+        button.backgroundColor = .white
+        button.setTitleColor(.ypBlack, for: .normal)
+        button.layer.cornerRadius = 16
+        button.layer.masksToBounds = true
+        button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
+        button.translatesAutoresizingMaskIntoConstraints = false
+        return button
+    }()
+    
     // MARK: - Properties
-    private let webViewSegueIdentifier = "ShowWebView"
     private let oauth2Service = OAuth2Service.shared
     private let tokenStorage = OAuth2TokenStorage.shared
     
@@ -22,28 +44,46 @@ final class AuthViewController: UIViewController {
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
+        setupViews()
+        setupConstraints()
         configureBackButton()
     }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == webViewSegueIdentifier {
-            guard let webViewViewController = segue.destination as? WebViewViewController else {
-                print("[AuthViewController] - Failed to prepare for \(webViewSegueIdentifier)")
-                assertionFailure("Failed to prepare for \(webViewSegueIdentifier)")
-                return
-            }
-            webViewViewController.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
+    // MARK: - Private Methods
+    private func setupViews() {
+        view.backgroundColor = .ypBlack
+        view.addSubview(logoImageView)
+        view.addSubview(loginButton)
     }
     
-    // MARK: - Private Methods
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // Logo
+            logoImageView.centerXAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerXAnchor),
+            logoImageView.centerYAnchor.constraint(equalTo: view.safeAreaLayoutGuide.centerYAnchor),
+            logoImageView.widthAnchor.constraint(equalToConstant: 60),
+            logoImageView.heightAnchor.constraint(equalToConstant: 60),
+            
+            // Login Button
+            loginButton.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 16),
+            loginButton.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -16),
+            loginButton.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90),
+            loginButton.heightAnchor.constraint(equalToConstant: 48)
+        ])
+    }
+    
     private func configureBackButton() {
         navigationController?.navigationBar.backIndicatorImage = UIImage(named: "nav_back_button")
         navigationController?.navigationBar.backIndicatorTransitionMaskImage = UIImage(named: "nav_back_button")
         navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
         navigationItem.backBarButtonItem?.tintColor = .ypBlack
+    }
+    
+    // MARK: - Actions
+    @objc private func loginButtonTapped() {
+        let webViewVC = WebViewViewController()
+        webViewVC.delegate = self
+        navigationController?.pushViewController(webViewVC, animated: true)
     }
 }
 
@@ -52,47 +92,51 @@ extension AuthViewController: WebViewViewControllerDelegate {
     func webViewViewController(_ vc: WebViewViewController, didAuthenticateWithCode code: String) {
         print("[AuthViewController] - Received authentication code, fetching token...")
         
-        fetchAuthToken(code) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let token):
-                print("[AuthViewController] - Authentication successful, token received: \(token.prefix(10))...")
-                
-                // First dismiss the WebView, then notify delegate
-                vc.dismiss(animated: true) { [weak self] in
-                    guard let self = self else { return }
-                    print("[AuthViewController] - WebView dismissed, notifying delegate")
-                    self.delegate?.didAuthenticate(self)
-                }
-                
-            case .failure(let error):
-                print("[AuthViewController] - Authentication failed: \(error.localizedDescription)")
-                vc.dismiss(animated: true)
-                // Here you could show an error alert to the user
-                self.showAuthenticationError(error)
-            }
+        // Dismiss WebView first
+        navigationController?.popViewController(animated: true)
+        
+        // Show blocking progress HUD after a small delay to ensure smooth animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            UIBlockingProgressHUD.show()
+            self?.performAuthentication(with: code)
         }
     }
     
     func webViewViewControllerDidCancel(_ vc: WebViewViewController) {
         print("[AuthViewController] - User cancelled authentication")
-        vc.dismiss(animated: true)
+        navigationController?.popViewController(animated: true)
+    }
+    
+    private func performAuthentication(with code: String) {
+        oauth2Service.fetchAuthToken(code: code) { [weak self] result in
+            // Always dismiss the progress HUD
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self = self else {
+                print("[AuthViewController] - Self was deallocated during authentication")
+                return
+            }
+            
+            switch result {
+            case .success(let token):
+                print("[AuthViewController] - Authentication successful, token received: \(token.prefix(10))...")
+                print("[AuthViewController] - Notifying delegate")
+                self.delegate?.didAuthenticate(self)
+                
+            case .failure(let error):
+                print("[AuthViewController] - Authentication failed: \(error.localizedDescription)")
+                self.showAuthenticationError(error)
+            }
+        }
     }
 }
 
 // MARK: - Private Methods Extension
 extension AuthViewController {
-    private func fetchAuthToken(_ code: String, completion: @escaping (Result<String, Error>) -> Void) {
-        oauth2Service.fetchAuthToken(code: code) { result in
-            completion(result)
-        }
-    }
-    
     private func showAuthenticationError(_ error: Error) {
         let alert = UIAlertController(
-            title: "Authentication Error",
-            message: "Failed to authenticate. Please try again.",
+            title: "Что-то пошло не так :(",
+            message: "Не удалось войти в систему",
             preferredStyle: .alert
         )
         

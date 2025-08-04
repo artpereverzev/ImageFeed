@@ -8,16 +8,34 @@ import UIKit
 
 final class SplashViewController: UIViewController {
     // MARK: - Properties
-    override var preferredStatusBarStyle: UIStatusBarStyle {.lightContent}
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        .lightContent
+    }
     
-    private let showAuthenticationScreenSegueIdentifier = "ShowAuthenticationScreen"
     private let storage = OAuth2TokenStorage.shared
-    private var isAuthenticating = false
+    private let profileService = ProfileService.shared
+    private let profileImageService = ProfileImageService.shared
+    
+    private var wasAlreadyChecked = false
+    
+    // MARK: - UI Elements
+    private lazy var logoImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage(named: "SplashScreenLogo")
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        return imageView
+    }()
     
     // MARK: - Lifecycle
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        setupUI()
+        setupConstraints()
+    }
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
         checkAuthenticationStatus()
     }
     
@@ -27,62 +45,100 @@ final class SplashViewController: UIViewController {
     }
     
     // MARK: - Private Methods
+    private func setupUI() {
+        // Set background color to match the original design
+        view.backgroundColor = UIColor.ypBlack
+        
+        // Add logo to view hierarchy
+        view.addSubview(logoImageView)
+    }
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            logoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            logoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+    
     private func checkAuthenticationStatus() {
-        // Preventing multiple authentication flows
-        guard !isAuthenticating else {
-            print("[SplashViewController] - Already authenticating, skipping check")
-            return
-        }
+        // Prevent multiple executions
+        guard !wasAlreadyChecked else { return }
+        wasAlreadyChecked = true
         
         if let token = storage.token {
-            print("[SplashViewController] - Token found: \(token.prefix(10))..., switching to tab bar")
-            switchToTabBarController()
+            print("[SplashViewController] - Token found, fetching profile")
+            fetchProfile(token: token)
         } else {
             print("[SplashViewController] - No token found, showing authentication")
-            showAuthenticationFlow()
+            showAuthenticationScreen()
         }
     }
     
-    private func showAuthenticationFlow() {
-        isAuthenticating = true
-        performSegue(withIdentifier: showAuthenticationScreenSegueIdentifier, sender: nil)
+    private func showAuthenticationScreen() {
+        // Create AuthViewController programmatically
+        let authViewController = AuthViewController()
+        authViewController.delegate = self
+        
+        // Create navigation controller with AuthViewController
+        let navigationController = UINavigationController(rootViewController: authViewController)
+        
+        // Set full screen presentation style
+        navigationController.modalPresentationStyle = .fullScreen
+        
+        // Present the navigation controller
+        present(navigationController, animated: true)
+    }
+    
+    private func fetchProfile(token: String) {
+        UIBlockingProgressHUD.show()
+        
+        profileService.fetchProfile(token) { [weak self] result in
+            UIBlockingProgressHUD.dismiss()
+            
+            guard let self = self else { return }
+            
+            switch result {
+            case .success(let profile):
+                print("[SplashViewController] - Profile fetched successfully: @\(profile.username)")
+                
+                // Fetch avatar URL asynchronously (don't wait for it)
+                self.profileImageService.fetchProfileImageURL(username: profile.username) { result in
+                    switch result {
+                    case .success(let avatarURL):
+                        print("[SplashViewController] - Avatar URL fetched: \(avatarURL)")
+                    case .failure(let error):
+                        print("[SplashViewController] - Failed to fetch avatar URL: \(error)")
+                    }
+                }
+                
+                self.switchToTabBarController()
+                
+            case .failure(let error):
+                print("[SplashViewController] - Failed to fetch profile: \(error)")
+                // TODO: Handle error in Sprint 11
+                // For now, just proceed to tab bar controller
+                self.switchToTabBarController()
+            }
+        }
     }
     
     private func switchToTabBarController() {
-        guard let window = view.window else {
-            print("[SplashViewController] - Failed to get window from view")
-            assertionFailure("Invalid window configuration")
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
+            print("[SplashViewController] - Failed to get key window")
             return
         }
         
-        guard let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController") as? UITabBarController else {
-            print("[SplashViewController] - Failed to instantiate TabBarViewController")
-            assertionFailure("Failed to instantiate TabBarViewController")
-            return
-        }
-        
+        let tabBarController = TabBarController()
         window.rootViewController = tabBarController
+        
+        // Add a nice transition
+        UIView.transition(with: window,
+                          duration: 0.3,
+                          options: .transitionCrossDissolve,
+                          animations: nil,
+                          completion: nil)
+        
         print("[SplashViewController] - Successfully switched to tab bar controller")
-    }
-}
-
-// MARK: - Extension for SplashViewController
-extension SplashViewController {
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == showAuthenticationScreenSegueIdentifier {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let viewController = navigationController.viewControllers[0] as? AuthViewController
-            else {
-                print("[SplashViewController] - Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
-                assertionFailure("Failed to prepare for \(showAuthenticationScreenSegueIdentifier)")
-                return
-            }
-            viewController.delegate = self
-        } else {
-            super.prepare(for: segue, sender: sender)
-        }
     }
 }
 
@@ -91,27 +147,18 @@ extension SplashViewController: AuthViewControllerDelegate {
     func didAuthenticate(_ vc: AuthViewController) {
         print("[SplashViewController] - Authentication completed")
         
-        // Reseting authentication flag
-        isAuthenticating = false
-        
-        // Get window reference while we still can
-        guard let window = view.window else {
-            print("[SplashViewController] - Failed to get window reference during authentication")
+        guard let token = storage.token else {
+            print("[SplashViewController] - No token found after authentication")
+            assertionFailure("No token found after authentication")
             return
         }
         
-        // Create tab bar controller
-        guard let tabBarController = UIStoryboard(name: "Main", bundle: .main)
-            .instantiateViewController(withIdentifier: "TabBarViewController") as? UITabBarController else {
-            print("[SplashViewController] - Failed to instantiate TabBarViewController during authentication")
-            return
-        }
-        
-        // Dismiss auth flow first, then switch in completion
-        vc.dismiss(animated: true) {
-            print("[SplashViewController] - Auth flow dismissed, now switching to tab bar")
-            window.rootViewController = tabBarController
-            print("[SplashViewController] - Successfully switched to tab bar controller")
+        // Dismiss the entire navigation controller
+        dismiss(animated: true) { [weak self] in
+            print("[SplashViewController] - Auth screen dismissed, fetching profile with token")
+            // Reset the flag only after dismiss completes
+            self?.wasAlreadyChecked = false
+            self?.fetchProfile(token: token)
         }
     }
 }

@@ -10,6 +10,9 @@ final class OAuth2Service {
     // MARK: - Properties
     static let shared = OAuth2Service()
     
+    private var task: URLSessionTask?
+    private var lastCode: String?
+    
     private struct OAuthTokenResponseBody: Decodable {
         let accessToken: String
         let tokenType: String
@@ -67,64 +70,68 @@ final class OAuth2Service {
         code: String,
         completion: @escaping (Result<String, Error>) -> Void
     ) {
+        assert(Thread.isMainThread)
         print("[OAuth2Service] - Starting token fetch with code: \(code.prefix(10))...")
+        
+        // Check if there's an existing task
+        if task != nil {
+            if lastCode != code {
+                // Different code - cancel the previous request
+                print("[OAuth2Service] - Cancelling previous request for different code")
+                task?.cancel()
+            } else {
+                // Same code - reject duplicate request
+                print("[OAuth2Service] - Duplicate request for same code, rejecting")
+                completion(.failure(AuthServiceError.invalidRequest))
+                return
+            }
+        } else {
+            // No task but same code as before - also reject
+            if lastCode == code {
+                print("[OAuth2Service] - Duplicate request for already processed code, rejecting")
+                completion(.failure(AuthServiceError.invalidRequest))
+                return
+            }
+        }
+        
+        lastCode = code
         
         guard let request = makeOAuthTokenRequest(code: code) else {
             let error = NetworkError.invalidRequest
             print("[OAuth2Service] - Invalid request: \(error.localizedDescription)")
-            DispatchQueue.main.async {
-                completion(.failure(error))
-            }
+            completion(.failure(error))
             return
         }
         
-        let task = URLSession.shared.performDataTask(for: request) { [weak self] result in
-            guard let self = self else { return }
-            
-            switch result {
-            case .success(let data):
-                print("[OAuth2Service] - Received response data: \(data.count) bytes")
-                
-                // Log response as string for debugging
-                if let responseString = String(data: data, encoding: String.Encoding.utf8) {
-                    print("[OAuth2Service] - Response body: \(responseString)")
+        let task = URLSession.shared.objectTask(for: request) { [weak self] (result: Result<OAuthTokenResponseBody, Error>) in
+            print("[OAuth2Service] - objectTask completed, dispatching to main thread")
+            DispatchQueue.main.async {
+                guard let self = self else {
+                    print("[OAuth2Service] - Self is nil in completion")
+                    return
                 }
                 
-                do {
-                    let decoder = JSONDecoder()
-                    let responseBody = try decoder.decode(OAuthTokenResponseBody.self, from: data)
-                    
+                // Clear task and code
+                self.task = nil
+                self.lastCode = nil
+                
+                switch result {
+                case .success(let responseBody):
                     // Saving token
                     OAuth2TokenStorage.shared.token = responseBody.accessToken
                     print("[OAuth2Service] - Successfully received and saved token")
+                    print("[OAuth2Service] - Calling completion handler with success")
+                    completion(.success(responseBody.accessToken))
                     
-                    DispatchQueue.main.async {
-                        completion(.success(responseBody.accessToken))
-                    }
-                } catch {
-                    print("[OAuth2Service] - Decoding error: \(error)")
-                    if let decodingError = error as? DecodingError {
-                        print("[OAuth2Service] - Detailed decoding error: \(decodingError)")
-                    }
-                    DispatchQueue.main.async {
-                        completion(.failure(NetworkError.decodingError(error)))
-                    }
-                }
-            case .failure(let error):
-                print("[OAuth2Service] - Network error: \(error.localizedDescription)")
-                if let networkError = error as? NetworkError {
-                    switch networkError {
-                    case .httpStatusCode(let statusCode):
-                        print("[OAuth2Service] - HTTP Status Code: \(statusCode)")
-                    default:
-                        break
-                    }
-                }
-                DispatchQueue.main.async {
+                case .failure(let error):
+                    print("[OAuth2Service] - Request failed: \(error)")
+                    print("[OAuth2Service] - Calling completion handler with failure")
                     completion(.failure(error))
                 }
             }
         }
+        
+        self.task = task
         task.resume()
     }
 }
