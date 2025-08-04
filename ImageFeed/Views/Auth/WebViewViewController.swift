@@ -20,58 +20,85 @@ protocol WebViewViewControllerDelegate: AnyObject {
 
 // MARK: - View Controller
 final class WebViewViewController: UIViewController {
-    // MARK: - Properties
-    @IBOutlet private var progressView: UIProgressView!
-    @IBOutlet private var webView: WKWebView!
+    // MARK: - UI Elements
+    private lazy var webView: WKWebView = {
+        let webView = WKWebView()
+        webView.backgroundColor = .white
+        webView.navigationDelegate = self
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        return webView
+    }()
     
-    // MARK: - Delegates
+    private lazy var progressView: UIProgressView = {
+        let progressView = UIProgressView(progressViewStyle: .default)
+        progressView.tintColor = .ypBlack
+        progressView.translatesAutoresizingMaskIntoConstraints = false
+        return progressView
+    }()
+    
+    // MARK: - Properties
     weak var delegate: WebViewViewControllerDelegate?
+    
+    // Progress observer
+    private var progressObservation: NSKeyValueObservation?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        webView.navigationDelegate = self
-        
+        setupViews()
+        setupConstraints()
+        setupNavigationBar()
         loadAuthView()
         
-        updateProgress()
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
-        
-        webView.addObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            options: .new,
-            context: nil
-        )
-        updateProgress()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        webView.removeObserver(
-            self,
-            forKeyPath: #keyPath(WKWebView.estimatedProgress),
-            context: nil
-        )
-    }
-    
-    // MARK: - Observe Methods
-    override func observeValue(
-        forKeyPath keyPath: String?,
-        of object: Any?,
-        change: [NSKeyValueChangeKey : Any]?,
-        context: UnsafeMutableRawPointer?
-    ) {
-        if keyPath == #keyPath(WKWebView.estimatedProgress) {
-            updateProgress()
-        } else {
-            super.observeValue(forKeyPath: keyPath, of: object, change: change, context: context)
+        // Set up progress observation using modern KVO
+        progressObservation = webView.observe(
+            \.estimatedProgress,
+            options: .new
+        ) { [weak self] _, _ in
+            self?.updateProgress()
         }
+        
+        updateProgress()
+    }
+    
+    deinit {
+        // Clean up observation (though it's automatically removed on deinit)
+        progressObservation?.invalidate()
+    }
+    
+    // MARK: - Private Methods
+    private func setupViews() {
+        view.backgroundColor = .white
+        view.addSubview(webView)
+        view.addSubview(progressView)
+    }
+    
+    private func setupConstraints() {
+        NSLayoutConstraint.activate([
+            // Web View
+            webView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            webView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            
+            // Progress View
+            progressView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            progressView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            progressView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
+    }
+    
+    private func setupNavigationBar() {
+        // The back button is already configured in AuthViewController
+        // Just add the back action if needed
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(named: "nav_back_button"),
+            style: .plain,
+            target: self,
+            action: #selector(didTapBackButton)
+        )
+        navigationItem.leftBarButtonItem?.tintColor = .ypBlack
     }
 
     private func updateProgress() {
@@ -79,8 +106,8 @@ final class WebViewViewController: UIViewController {
         progressView.isHidden = fabs(webView.estimatedProgress - 1.0) <= 0.0001
     }
     
-    // MARK: - Outlet Actions
-    @IBAction private func didTapBackButton(_ sender: Any?) {
+    // MARK: - Actions
+    @objc private func didTapBackButton() {
         delegate?.webViewViewControllerDidCancel(self)
     }
     
