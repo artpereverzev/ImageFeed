@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import UIKit
 
 // MARK: - UI Model
 struct Photo {
@@ -16,6 +17,50 @@ struct Photo {
     let thumbImageURL: String
     let largeImageURL: String
     let isLiked: Bool
+    
+    // MARK: - Initialization from API Response
+    /// Creates a Photo from a PhotoResult API response
+    init(from photoResult: PhotoResult, dateFormatter: ISO8601DateFormatter = ISO8601DateFormatter()) {
+        self.id = photoResult.id
+        self.size = CGSize(width: photoResult.width, height: photoResult.height)
+        self.createdAt = dateFormatter.date(from: photoResult.createdAt)
+        self.welcomeDescription = photoResult.description
+        self.thumbImageURL = photoResult.urls.regular  // Using 'regular' for better quality
+        self.largeImageURL = photoResult.urls.full
+        self.isLiked = photoResult.likedByUser
+    }
+    
+    // MARK: - Helper Methods
+    func withToggledLike() -> Photo {
+        return Photo(
+            id: id,
+            size: size,
+            createdAt: createdAt,
+            welcomeDescription: welcomeDescription,
+            thumbImageURL: thumbImageURL,
+            largeImageURL: largeImageURL,
+            isLiked: !isLiked
+        )
+    }
+    
+    // MARK: - Direct Initialization
+    init(
+        id: String,
+        size: CGSize,
+        createdAt: Date?,
+        welcomeDescription: String?,
+        thumbImageURL: String,
+        largeImageURL: String,
+        isLiked: Bool
+    ) {
+        self.id = id
+        self.size = size
+        self.createdAt = createdAt
+        self.welcomeDescription = welcomeDescription
+        self.thumbImageURL = thumbImageURL
+        self.largeImageURL = largeImageURL
+        self.isLiked = isLiked
+    }
 }
 
 // MARK: - API Response Models
