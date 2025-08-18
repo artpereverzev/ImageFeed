@@ -191,25 +191,25 @@ final class ProfileViewController: UIViewController {
     // MARK: - Logout Methods
     private func showLogoutConfirmation() {
         let alert = UIAlertController(
-            title: "Выход",
-            message: "Вы уверены, что хотите выйти из профиля?",
+            title: "Пока, пока!",
+            message: "Уверены что хотите выйти?",
             preferredStyle: .alert
         )
         
-        // Cancel action
-        alert.addAction(UIAlertAction(
-            title: "Отмена",
-            style: .cancel,
-            handler: nil
-        ))
-        
         // Logout action
         alert.addAction(UIAlertAction(
-            title: "Выйти",
-            style: .destructive
+            title: "Да",
+            style: .default
         ) { [weak self] _ in
             self?.performLogout()
         })
+        
+        // Cancel action
+        alert.addAction(UIAlertAction(
+            title: "Нет",
+            style: .default,
+            handler: nil
+        ))
         
         present(alert, animated: true)
     }

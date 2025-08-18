@@ -63,7 +63,7 @@ final class ImagesListService {
                 case .success(let photoResults):
                     print("[ImagesListService] - Received \(photoResults.count) photos from API")
                     
-                    // Filter out any duplicates and convert to Photo objects
+                    // Filter out duplicates and convert to Photo objects using the new initializer
                     let newPhotos = photoResults.compactMap { photoResult -> Photo? in
                         // Check if we've already loaded this photo
                         guard !self.loadedPhotoIds.contains(photoResult.id) else {
@@ -74,8 +74,8 @@ final class ImagesListService {
                         // Add to loaded IDs set
                         self.loadedPhotoIds.insert(photoResult.id)
                         
-                        // Convert to Photo
-                        return self.convertToPhoto(photoResult)
+                        // Convert to Photo using the new initializer
+                        return Photo(from: photoResult, dateFormatter: self.dateFormatter)
                     }
                     
                     // Only update if we have new photos
@@ -109,7 +109,12 @@ final class ImagesListService {
     
     // MARK: - Private Methods
     private func makePhotosRequest(page: Int, perPage: Int, token: String) -> URLRequest? {
-        guard var urlComponents = URLComponents(string: "https://api.unsplash.com/photos") else {
+        // Use base URL from Constants
+        guard let url = URL(string: "/photos", relativeTo: Constants.defaultBaseURL) else {
+            return nil
+        }
+        
+        guard var urlComponents = URLComponents(url: url, resolvingAgainstBaseURL: true) else {
             return nil
         }
         
@@ -118,30 +123,15 @@ final class ImagesListService {
             URLQueryItem(name: "per_page", value: String(perPage))
         ]
         
-        guard let url = urlComponents.url else {
+        guard let finalURL = urlComponents.url else {
             return nil
         }
         
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: finalURL)
         request.httpMethod = "GET"
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         
         return request
-    }
-    
-    private func convertToPhoto(_ photoResult: PhotoResult) -> Photo? {
-        let size = CGSize(width: photoResult.width, height: photoResult.height)
-        let createdAt = dateFormatter.date(from: photoResult.createdAt)
-        
-        return Photo(
-            id: photoResult.id,
-            size: size,
-            createdAt: createdAt,
-            welcomeDescription: photoResult.description,
-            thumbImageURL: photoResult.urls.regular,  // Use 'regular' for better quality
-            largeImageURL: photoResult.urls.full,
-            isLiked: photoResult.likedByUser
-        )
     }
     
     // MARK: - Like/Unlike Methods
@@ -174,21 +164,13 @@ final class ImagesListService {
                         // Get current photo
                         let photo = self.photos[index]
                         
-                        // Create a new photo with toggled isLiked value
-                        let newPhoto = Photo(
-                            id: photo.id,
-                            size: photo.size,
-                            createdAt: photo.createdAt,
-                            welcomeDescription: photo.welcomeDescription,
-                            thumbImageURL: photo.thumbImageURL,
-                            largeImageURL: photo.largeImageURL,
-                            isLiked: !photo.isLiked  // Toggle the isLiked value
-                        )
+                        // Create a new photo with toggled isLiked value using the copy helper
+                        let updatedPhoto = photo.withToggledLike()
                         
                         // Replace the photo in the array
-                        self.photos[index] = newPhoto
+                        self.photos[index] = updatedPhoto
                         
-                        print("[ImagesListService] - Successfully toggled like for photo: \(photoId), new status: \(newPhoto.isLiked)")
+                        print("[ImagesListService] - Successfully toggled like for photo: \(photoId), new status: \(updatedPhoto.isLiked)")
                         
                         // Post notification about the change
                         NotificationCenter.default.post(
@@ -211,7 +193,8 @@ final class ImagesListService {
     }
     
     private func makeLikeRequest(photoId: String, isLike: Bool, token: String) -> URLRequest? {
-        guard let url = URL(string: "https://api.unsplash.com/photos/\(photoId)/like") else {
+        // Use base URL from Constants
+        guard let url = URL(string: "/photos/\(photoId)/like", relativeTo: Constants.defaultBaseURL) else {
             return nil
         }
         
