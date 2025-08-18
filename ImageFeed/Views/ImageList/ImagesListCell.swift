@@ -5,6 +5,12 @@
 //  Created by Artem Pereverzev on 18.06.2025.
 //
 import UIKit
+import Kingfisher
+
+// MARK: - Delegate Protocol
+protocol ImagesListCellDelegate: AnyObject {
+    func imageListCellDidTapLike(_ cell: ImagesListCell)
+}
 
 final class ImagesListCell: UITableViewCell {
     // MARK: - UI Elements
@@ -19,6 +25,7 @@ final class ImagesListCell: UITableViewCell {
     
     lazy var cellLikeButton: UIButton = {
         let button = UIButton(type: .custom)
+        button.addTarget(self, action: #selector(likeButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
@@ -33,6 +40,7 @@ final class ImagesListCell: UITableViewCell {
     
     // MARK: - Properties
     static let reuseIdentifier = "ImagesListCell"
+    weak var delegate: ImagesListCellDelegate?
     
     // MARK: - Initialization
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -44,6 +52,46 @@ final class ImagesListCell: UITableViewCell {
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    // MARK: - Override Methods
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        
+        // Cancel any ongoing image download
+        cellImage.kf.cancelDownloadTask()
+        
+        // Reset to placeholder
+        cellImage.image = UIImage(named: "Stub")
+        
+        // Reset labels
+        cellDateLabel.text = ""
+        
+        // Reset like button
+        cellLikeButton.setImage(nil, for: .normal)
+        
+        // Clear delegate to prevent retain cycles
+        delegate = nil
+    }
+    
+    // MARK: - Public Methods
+    func setIsLiked(_ isLiked: Bool) {
+        let likeImageName = isLiked ? "LikeButtonActive" : "LikeButtonNoActive"
+        cellLikeButton.setImage(UIImage(named: likeImageName), for: .normal)
+        
+        // Add a little animation for feedback
+        UIView.animate(withDuration: 0.3, animations: {
+            self.cellLikeButton.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+        }) { _ in
+            UIView.animate(withDuration: 0.3) {
+                self.cellLikeButton.transform = CGAffineTransform.identity
+            }
+        }
+    }
+    
+    // MARK: - Actions
+    @objc private func likeButtonClicked() {
+        delegate?.imageListCellDidTapLike(self)
     }
     
     // MARK: - Private Methods

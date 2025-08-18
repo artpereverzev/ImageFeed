@@ -4,6 +4,7 @@
 //
 //  Created by Artem Pereverzev on 24.06.2025.
 //
+
 import UIKit
 import Kingfisher
 
@@ -58,6 +59,7 @@ final class ProfileViewController: UIViewController {
     // MARK: - Properties
     private let profileService = ProfileService.shared
     private let profileImageService = ProfileImageService.shared
+    private let logoutService = ProfileLogoutService.shared
     private var profileImageServiceObserver: NSObjectProtocol?
     
     // MARK: - Lifecycle
@@ -182,7 +184,74 @@ final class ProfileViewController: UIViewController {
     
     // MARK: - Actions
     @objc private func didTapLogoutButton() {
-        // TODO: Implement logout functionality in future sprint
         print("[ProfileViewController] - Logout button tapped")
+        showLogoutConfirmation()
+    }
+    
+    // MARK: - Logout Methods
+    private func showLogoutConfirmation() {
+        let alert = UIAlertController(
+            title: "Выход",
+            message: "Вы уверены, что хотите выйти из профиля?",
+            preferredStyle: .alert
+        )
+        
+        // Cancel action
+        alert.addAction(UIAlertAction(
+            title: "Отмена",
+            style: .cancel,
+            handler: nil
+        ))
+        
+        // Logout action
+        alert.addAction(UIAlertAction(
+            title: "Выйти",
+            style: .destructive
+        ) { [weak self] _ in
+            self?.performLogout()
+        })
+        
+        present(alert, animated: true)
+    }
+    
+    private func performLogout() {
+        print("[ProfileViewController] - Performing logout")
+        
+        // Show progress HUD while cleaning up
+        UIBlockingProgressHUD.show()
+        
+        // Perform logout cleanup
+        logoutService.logout()
+        
+        // Small delay to ensure cleanup completes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            UIBlockingProgressHUD.dismiss()
+            self?.switchToSplashScreen()
+        }
+    }
+    
+    private func switchToSplashScreen() {
+        print("[ProfileViewController] - Switching to splash screen")
+        
+        // Get the key window
+        guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
+            print("[ProfileViewController] - Failed to get key window")
+            return
+        }
+        
+        // Create and set splash view controller as root
+        let splashViewController = SplashViewController()
+        window.rootViewController = splashViewController
+        
+        // Add a nice transition
+        UIView.transition(
+            with: window,
+            duration: 0.3,
+            options: .transitionCrossDissolve,
+            animations: nil,
+            completion: nil
+        )
+        
+        print("[ProfileViewController] - Successfully switched to splash screen")
     }
 }
