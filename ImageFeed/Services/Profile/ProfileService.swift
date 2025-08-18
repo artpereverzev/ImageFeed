@@ -105,3 +105,14 @@ final class ProfileService {
         return request
     }
 }
+
+// MARK: - ProfileService Extension
+extension ProfileService {
+    /// Clears the cached profile data
+    /// Used during logout to reset the service state
+    func reset() {
+        profile = nil
+        task?.cancel()
+        task = nil
+    }
+}

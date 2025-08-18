@@ -102,3 +102,14 @@ final class ProfileImageService {
         return request
     }
 }
+
+// MARK: - ProfileImageService Extension
+extension ProfileImageService {
+    /// Clears the cached avatar URL
+    /// Used during logout to reset the service state
+    func reset() {
+        avatarURL = nil
+        task?.cancel()
+        task = nil
+    }
+}
