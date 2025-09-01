@@ -32,6 +32,7 @@ final class AuthViewController: UIViewController {
         button.layer.masksToBounds = true
         button.addTarget(self, action: #selector(loginButtonTapped), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "Authenticate"
         return button
     }()
     
@@ -82,7 +83,14 @@ final class AuthViewController: UIViewController {
     // MARK: - Actions
     @objc private func loginButtonTapped() {
         let webViewVC = WebViewViewController()
+        let authHelper = AuthHelper()
+        let webViewPresenter = WebViewPresenter(authHelper: authHelper)
+        
+        // Connect view and presenter
+        webViewVC.presenter = webViewPresenter
+        webViewPresenter.view = webViewVC
         webViewVC.delegate = self
+        
         navigationController?.pushViewController(webViewVC, animated: true)
     }
 }

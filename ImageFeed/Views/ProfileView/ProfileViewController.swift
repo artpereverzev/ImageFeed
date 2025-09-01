@@ -8,14 +8,26 @@
 import UIKit
 import Kingfisher
 
-final class ProfileViewController: UIViewController {
+// MARK: - ProfileViewControllerProtocol
+protocol ProfileViewControllerProtocol: AnyObject {
+    var presenter: ProfilePresenterProtocol? { get set }
+    func updateProfileDetails(name: String, loginName: String, bio: String)
+    func updateAvatar(from urlString: String)
+    func showLogoutConfirmationAlert()
+    func showLoading()
+    func hideLoading()
+    func switchToSplashScreen()
+}
+
+// MARK: - ProfileViewController
+final class ProfileViewController: UIViewController & ProfileViewControllerProtocol {
     // MARK: - UI Elements
     private lazy var profileAvatarImage: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "profile_icon_default")
         imageView.contentMode = .scaleAspectFill
         imageView.clipsToBounds = true
-        imageView.layer.cornerRadius = 35 // Half of 70 (width/height)
+        imageView.layer.cornerRadius = 35
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
@@ -53,14 +65,12 @@ final class ProfileViewController: UIViewController {
         button.setImage(UIImage(named: "Exit"), for: .normal)
         button.tintColor = .white
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "LogoutButton"
         return button
     }()
     
     // MARK: - Properties
-    private let profileService = ProfileService.shared
-    private let profileImageService = ProfileImageService.shared
-    private let logoutService = ProfileLogoutService.shared
-    private var profileImageServiceObserver: NSObjectProtocol?
+    var presenter: ProfilePresenterProtocol?
     
     // MARK: - Lifecycle
     override func viewDidLoad() {
@@ -68,26 +78,7 @@ final class ProfileViewController: UIViewController {
         setupView()
         setupConstraints()
         setupActions()
-        updateProfileDetails()
-        
-        // Set up notification observer for avatar URL changes
-        profileImageServiceObserver = NotificationCenter.default.addObserver(
-            forName: ProfileImageService.didChangeNotification,
-            object: nil,
-            queue: .main
-        ) { [weak self] _ in
-            self?.updateAvatar()
-        }
-        
-        // Update avatar if already loaded
-        updateAvatar()
-    }
-    
-    deinit {
-        // Clean up observer
-        if let observer = profileImageServiceObserver {
-            NotificationCenter.default.removeObserver(observer)
-        }
+        presenter?.viewDidLoad()
     }
     
     // MARK: - Private Methods
@@ -136,31 +127,24 @@ final class ProfileViewController: UIViewController {
         logoutButton.addTarget(self, action: #selector(didTapLogoutButton), for: .touchUpInside)
     }
     
-    private func updateProfileDetails() {
-        guard let profile = profileService.profile else {
-            print("[ProfileViewController] - No profile data available")
-            return
-        }
-        
-        nameLabel.text = profile.name
-        loginNameLabel.text = profile.loginName
-        descriptionLabel.text = profile.bio ?? ""
-        
-        print("[ProfileViewController] - Updated profile UI for user: \(profile.username)")
+    // MARK: - Actions
+    @objc private func didTapLogoutButton() {
+        presenter?.didTapLogoutButton()
     }
     
-    private func updateAvatar() {
-        guard
-            let urlString = profileImageService.avatarURL,
-            let url = URL(string: urlString)
-        else {
-            print("[ProfileViewController] - No avatar URL available")
+    // MARK: - ProfileViewControllerProtocol Methods
+    func updateProfileDetails(name: String, loginName: String, bio: String) {
+        nameLabel.text = name
+        loginNameLabel.text = loginName
+        descriptionLabel.text = bio
+    }
+    
+    func updateAvatar(from urlString: String) {
+        guard let url = URL(string: urlString) else {
+            print("[ProfileViewController] - Invalid avatar URL")
             return
         }
         
-        print("[ProfileViewController] - Loading avatar from URL: \(url)")
-        
-        // Use Kingfisher to load the avatar image
         profileAvatarImage.kf.indicatorType = .activity
         profileAvatarImage.kf.setImage(
             with: url,
@@ -175,36 +159,28 @@ final class ProfileViewController: UIViewController {
         ) { result in
             switch result {
             case .success(let value):
-                print("[ProfileViewController] - Avatar loaded successfully from: \(value.source)")
+                print("[ProfileViewController] - Avatar loaded from: \(value.source)")
             case .failure(let error):
                 print("[ProfileViewController] - Failed to load avatar: \(error.localizedDescription)")
             }
         }
     }
     
-    // MARK: - Actions
-    @objc private func didTapLogoutButton() {
-        print("[ProfileViewController] - Logout button tapped")
-        showLogoutConfirmation()
-    }
-    
-    // MARK: - Logout Methods
-    private func showLogoutConfirmation() {
+    func showLogoutConfirmationAlert() {
         let alert = UIAlertController(
             title: "Пока, пока!",
             message: "Уверены что хотите выйти?",
             preferredStyle: .alert
         )
         
-        // Logout action
         alert.addAction(UIAlertAction(
             title: "Да",
             style: .default
         ) { [weak self] _ in
-            self?.performLogout()
+            guard let presenter = self?.presenter as? ProfilePresenter else { return }
+            presenter.confirmLogout()
         })
         
-        // Cancel action
         alert.addAction(UIAlertAction(
             title: "Нет",
             style: .default,
@@ -214,36 +190,23 @@ final class ProfileViewController: UIViewController {
         present(alert, animated: true)
     }
     
-    private func performLogout() {
-        print("[ProfileViewController] - Performing logout")
-        
-        // Show progress HUD while cleaning up
+    func showLoading() {
         UIBlockingProgressHUD.show()
-        
-        // Perform logout cleanup
-        logoutService.logout()
-        
-        // Small delay to ensure cleanup completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            UIBlockingProgressHUD.dismiss()
-            self?.switchToSplashScreen()
-        }
     }
     
-    private func switchToSplashScreen() {
-        print("[ProfileViewController] - Switching to splash screen")
-        
-        // Get the key window
+    func hideLoading() {
+        UIBlockingProgressHUD.dismiss()
+    }
+    
+    func switchToSplashScreen() {
         guard let window = UIApplication.shared.windows.first(where: { $0.isKeyWindow }) else {
             print("[ProfileViewController] - Failed to get key window")
             return
         }
         
-        // Create and set splash view controller as root
         let splashViewController = SplashViewController()
         window.rootViewController = splashViewController
         
-        // Add a nice transition
         UIView.transition(
             with: window,
             duration: 0.3,
@@ -252,6 +215,6 @@ final class ProfileViewController: UIViewController {
             completion: nil
         )
         
-        print("[ProfileViewController] - Successfully switched to splash screen")
+        print("[ProfileViewController] - Switched to splash screen")
     }
 }
