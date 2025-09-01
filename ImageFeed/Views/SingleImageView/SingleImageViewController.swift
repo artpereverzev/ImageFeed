@@ -43,6 +43,7 @@ final class SingleImageViewController: UIViewController {
         button.tintColor = .white
         button.addTarget(self, action: #selector(didTapBackButton), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "BackButton"
         return button
     }()
     

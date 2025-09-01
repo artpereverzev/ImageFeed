@@ -27,6 +27,7 @@ final class ImagesListCell: UITableViewCell {
         let button = UIButton(type: .custom)
         button.addTarget(self, action: #selector(likeButtonClicked), for: .touchUpInside)
         button.translatesAutoresizingMaskIntoConstraints = false
+        button.accessibilityIdentifier = "LikeButton"
         return button
     }()
     

@@ -2,15 +2,13 @@
 //  TabBarController.swift
 //  ImageFeed
 //
-//  Created by Artem Pereverzev on 04.08.2025.
+//  Created by Artem Pereverzev on 01.09.2025
 //
+
 import UIKit
 
 final class TabBarController: UITabBarController {
     
-    // IMPORTANT NOTE FOR REVIEWER: awakeFromNib() is only called when an object is loaded from a nib/storyboard file (as I can understand).
-    // Since i'm creating everything programmatically, this method might not be called,
-    // so because of that I decided to do everything in viewDidLoad.
     override func viewDidLoad() {
         super.viewDidLoad()
         setupTabBar()
@@ -39,20 +37,32 @@ final class TabBarController: UITabBarController {
     }
     
     private func setupViewControllers() {
-        let imagesListViewController = ImagesListViewController()
-        imagesListViewController.tabBarItem = UITabBarItem(
+        // Create ImagesListViewController with Presenter
+        let imagesListVC = ImagesListViewController()
+        let imagesListPresenter = ImagesListPresenter()
+        imagesListVC.presenter = imagesListPresenter
+        imagesListPresenter.view = imagesListVC
+        
+        imagesListVC.tabBarItem = UITabBarItem(
             title: "",
             image: UIImage(named: "tab_editorial_active"),
             selectedImage: nil
         )
+        imagesListVC.tabBarItem.accessibilityIdentifier = "FeedTab"
         
-        let profileViewController = ProfileViewController()
-        profileViewController.tabBarItem = UITabBarItem(
+        // Create ProfileViewController with Presenter
+        let profileVC = ProfileViewController()
+        let profilePresenter = ProfilePresenter()
+        profileVC.presenter = profilePresenter
+        profilePresenter.view = profileVC
+        
+        profileVC.tabBarItem = UITabBarItem(
             title: "",
             image: UIImage(named: "tab_profile_active"),
             selectedImage: nil
         )
+        profileVC.tabBarItem.accessibilityIdentifier = "ProfileTab"
         
-        self.viewControllers = [imagesListViewController, profileViewController]
+        viewControllers = [imagesListVC, profileVC]
     }
 }
